@@ -146,10 +146,8 @@ jobs:
 
       - name: Transferir Imagens Docker para VPS 📤
         run: |
-          # Transfer backend image
-          scp -P ${{ secrets.SERVER_SSH_PORT }} /tmp/backend-image.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/backend-image.tar
-          # Transfer frontend image
-          scp -P ${{ secrets.SERVER_SSH_PORT }} /tmp/frontend-image.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/frontend-image.tar
+          scp /tmp/backend-image.tar prod:/tmp/backend-image.tar
+          scp /tmp/frontend-image.tar prod:/tmp/frontend-image.tar
 
       - name: Deploy em Produção 🚀
         run: |
