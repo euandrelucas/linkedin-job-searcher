@@ -1,8 +1,6 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
+    image: linkedin-job-searcher-backend:latest
     ports:
       - "4002:3000"
     environment:
@@ -12,14 +10,12 @@ services:
       - app-network
 
   frontend:
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
+    image: linkedin-job-searcher-frontend:latest
     ports:
       - "8922:3001"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://backend:3000
+      - NEXT_PUBLIC_API_URL=https://linkedin-api.andrepaiva.dev
     depends_on:
       - backend
     restart: unless-stopped

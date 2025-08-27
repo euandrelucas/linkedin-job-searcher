@@ -166,7 +166,17 @@ O pipeline é executado automaticamente em:
 * Push para as branches `main` ou `master`
 * Pull requests para as branches `main` ou `master`
 
-Para configurar o deploy, descomente e configure a seção de deploy no arquivo de workflow.
+### Deploy em Produção
+
+O deploy em produção é otimizado para VPS com recursos limitados:
+
+1. **Build das imagens Docker no CI**: As imagens Docker são construídas no ambiente do GitHub Actions, não na VPS
+2. **Exportação das imagens**: As imagens são exportadas para arquivos .tar
+3. **Transferência via SSH**: Os arquivos são transferidos para a VPS via SSH
+4. **Carregamento das imagens**: Na VPS, as imagens são carregadas do arquivo .tar
+5. **Inicialização dos containers**: Os containers são iniciados usando docker-compose
+
+Esta abordagem evita o consumo excessivo de recursos na VPS durante o processo de build das imagens Docker.
 
 ## 🐳 Docker
 
@@ -181,18 +191,36 @@ O projeto está configurado para ser executado em containers Docker, facilitando
 
 ### Como executar com Docker
 
+#### Desenvolvimento local
+
 1. Construir e iniciar os containers:
 
 ```bash
 docker-compose up -d --build
 ```
 
-2. Acessar os serviços:
+#### Produção (VPS com recursos limitados)
+
+Para ambientes de produção com recursos limitados, as imagens são pré-construídas pelo CI/CD:
+
+1. As imagens são construídas no ambiente CI
+2. As imagens são transferidas para a VPS
+3. Iniciar os containers (sem build):
+
+```bash
+docker-compose up -d
+```
+
+### Acessando os serviços
+
+Após iniciar os containers (tanto em desenvolvimento quanto em produção):
 
 * Backend: `http://localhost:3000`
 * Frontend: `http://localhost:3001`
 
-3. Parar os containers:
+### Parando os containers
+
+Para parar os containers:
 
 ```bash
 docker-compose down
