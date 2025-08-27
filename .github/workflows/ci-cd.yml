@@ -53,12 +53,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-      # Uncomment and configure if you have a deployment step
-      # - name: Deploy
-      #   if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      #   run: |
-      #     # Add deployment commands here
-
   docker-test:
     runs-on: ubuntu-latest
     needs: build-and-test
