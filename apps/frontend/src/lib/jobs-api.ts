@@ -22,7 +22,7 @@ export interface Job {
 export class JobsApiService {
   private baseUrl: string
 
-  constructor(baseUrl: string = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4002") {
+  constructor(baseUrl: string = process.env.NEXT_PUBLIC_API_URL || "https://linkedin-api.andrepaiva.dev") {
     this.baseUrl = baseUrl
   }
 
