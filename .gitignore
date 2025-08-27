@@ -1,0 +1,38 @@
+# Node.js
+node_modules/
+npm-debug.log*
+pnpm-lock.yaml
+yarn.lock
+
+# Logs
+logs
+*.log
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Backend (NestJS)
+apps/backend/dist/
+apps/backend/.cache/
+
+# Frontend (Next.js)
+apps/frontend/.next/
+apps/frontend/out/
+apps/frontend/.vercel/
+
+# Packages (libs compartilhadas)
+packages/**/dist/
+
+# Coverage
+coverage/

@@ -1,0 +1,36 @@
+{
+  "name": "linkedin-job-searcher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scraper de vagas de emprego no LinkedIn para facilitar e personalizar a pesquisa de oportunidades.",
+  "main": "index.js",
+  "scripts": {
+    "dev:backend": "pnpm --filter backend start:dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
+    "build:backend": "pnpm --filter backend build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build": "pnpm build:backend && pnpm build:frontend",
+    "start:backend": "pnpm --filter backend start:prod",
+    "start:frontend": "pnpm --filter frontend start",
+    "start:prod": "concurrently \"pnpm start:backend\" \"pnpm start:frontend\""
+  },
+  "keywords": [
+    "linkedin",
+    "job",
+    "searcher",
+    "job-search",
+    "vagas",
+    "empregos"
+  ],
+  "author": "euandrelucas",
+  "license": "MIT",
+  "packageManager": "pnpm@10.15.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
