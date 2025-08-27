@@ -84,79 +84,98 @@ export class JobsService {
    */
   async searchJobs(params: SearchJobsDto): Promise<Jobs[]> {
     const { keywords, location, timeFilter = 3600 } = params;
-    const url = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
-      keywords,
-    )}&location=${encodeURIComponent(location)}&f_TPR=r${timeFilter}`;
+
+    // Cria uma chave de cache para a busca inicial baseada nos parâmetros.
+    const searchCacheKey = `search:${keywords}:${location}:${timeFilter}`;
 
     try {
-      // Etapa 1: Busca a página principal com a lista de vagas.
-      this.logger.log(`Buscando lista de vagas em: ${url}`);
-      const { data } = await axios.get<string>(url, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-        },
-      });
+      let jobsList: Jobs[] = [];
 
-      const $ = cheerio.load(data);
-      const jobsList: Jobs[] = [];
+      // Etapa 1: Verifica se a lista de resultados da busca já está em cache.
+      const cachedJobsList = await this.cache.get<Jobs[]>(searchCacheKey);
 
-      // Etapa 2: Extrai as informações básicas de cada vaga na lista usando seletores CSS.
-      $('.jobs-search__results-list > li').each((_, el) => {
-        const jobCard = $(el).find('.job-search-card');
-        if (jobCard.length) {
-          const title = jobCard
-            .find('h3.base-search-card__title')
-            .text()
-            .trim();
-          const company = jobCard
-            .find('h4.base-search-card__subtitle')
-            .text()
-            .trim();
-          const location = jobCard
-            .find('.job-search-card__location')
-            .text()
-            .trim();
-          const link = jobCard.find('a.base-card__full-link').attr('href');
+      if (cachedJobsList) {
+        this.logger.log(
+          `[CACHE] Retornando lista de vagas para a busca: ${searchCacheKey}`,
+        );
+        jobsList = cachedJobsList;
+      } else {
+        // Etapa 2: Se não estiver em cache, busca na web.
+        const url = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
+          keywords,
+        )}&location=${encodeURIComponent(location)}&f_TPR=r${timeFilter}`;
+        this.logger.log(`[HTTP] Buscando lista de vagas em: ${url}`);
 
-          // Extrai os dados adicionais que estavam faltando
-          const postedDate = jobCard
-            .find(
-              'time.job-search-card__listdate, time.job-search-card__listdate--new',
-            )
-            .text()
-            .trim();
-          const companyLogoImg = $(el).find('.search-entity-media img');
-          const companyLogoUrl =
-            companyLogoImg.attr('data-delayed-url') ||
-            companyLogoImg.attr('src');
-          const statusText = jobCard
-            .find('.job-posting-benefits__text')
-            .text()
-            .trim();
-          const status = statusText.replace(/\s\s+/g, ' ');
+        const { data } = await axios.get<string>(url, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+          },
+        });
 
-          if (title && company && link) {
-            jobsList.push({
-              title,
-              company,
-              location,
-              link,
-              postedDate,
-              companyLogoUrl,
-              status,
-            });
+        const $ = cheerio.load(data);
+
+        // Extrai as informações básicas de cada vaga na lista.
+        $('.jobs-search__results-list > li').each((_, el) => {
+          const jobCard = $(el).find('.job-search-card');
+          if (jobCard.length) {
+            const title = jobCard
+              .find('h3.base-search-card__title')
+              .text()
+              .trim();
+            const company = jobCard
+              .find('h4.base-search-card__subtitle')
+              .text()
+              .trim();
+            const location = jobCard
+              .find('.job-search-card__location')
+              .text()
+              .trim();
+            const link = jobCard.find('a.base-card__full-link').attr('href');
+            const postedDate = jobCard
+              .find(
+                'time.job-search-card__listdate, time.job-search-card__listdate--new',
+              )
+              .text()
+              .trim();
+            const companyLogoImg = $(el).find('.search-entity-media img');
+            const companyLogoUrl =
+              companyLogoImg.attr('data-delayed-url') ||
+              companyLogoImg.attr('src');
+            const statusText = jobCard
+              .find('.job-posting-benefits__text')
+              .text()
+              .trim();
+            const status = statusText.replace(/\s\s+/g, ' ');
+
+            if (title && company && link) {
+              jobsList.push({
+                title,
+                company,
+                location,
+                link,
+                postedDate,
+                companyLogoUrl,
+                status,
+              });
+            }
           }
-        }
-      });
+        });
+
+        // Armazena a lista recém-buscada no cache por 1 hora.
+        await this.cache.set(searchCacheKey, jobsList, 3600 * 1000);
+        this.logger.log(
+          `[CACHE] Lista de vagas armazenada para a busca: ${searchCacheKey}`,
+        );
+      }
 
       this.logger.log(
         `${jobsList.length} vagas encontradas. Buscando detalhes em lotes...`,
       );
 
-      // Etapa 3: Processa a busca de detalhes em lotes para evitar sobrecarga e erros 429.
+      // Etapa 3: Processa a busca de detalhes em lotes.
       const detailedJobs: Jobs[] = [];
-      const batchSize = 5; // Define o número de requisições simultâneas por lote.
+      const batchSize = 5;
 
       for (let i = 0; i < jobsList.length; i += batchSize) {
         const batch = jobsList.slice(i, i + batchSize);
@@ -170,11 +189,22 @@ export class JobsService {
             this.getJobDetails(job.link as string)
               .then((details) => ({ ...job, ...details }))
               .catch((error) => {
-                this.logger.error(
-                  `Falha ao obter detalhes para a vaga: ${job.title}`,
-                  (error as Error)?.stack,
-                );
-                return job;
+                // VERIFICAÇÃO ADICIONADA: Trata o erro 429 de forma específica.
+                if (
+                  axios.isAxiosError(error) &&
+                  error.response?.status === 429
+                ) {
+                  this.logger.warn(
+                    `Recebido erro 429 (Too Many Requests) para a vaga: ${job.title}. Pulando.`,
+                  );
+                } else {
+                  // Mantém o log detalhado para outros tipos de erro.
+                  this.logger.error(
+                    `Falha ao obter detalhes para a vaga: ${job.title}`,
+                    (error as Error)?.stack,
+                  );
+                }
+                return job; // Retorna o job original em caso de qualquer erro.
               }),
           );
 
@@ -188,7 +218,7 @@ export class JobsService {
 
       this.logger.log('Busca de detalhes concluída. Ordenando resultados...');
 
-      // Etapa 4: Ordena a lista para colocar vagas com descrição (detalhes completos) no topo.
+      // Etapa 4: Ordena a lista final.
       detailedJobs.sort((a, b) => {
         const aHasDetails = a.description ? 1 : 0;
         const bHasDetails = b.description ? 1 : 0;
@@ -198,7 +228,7 @@ export class JobsService {
       return detailedJobs;
     } catch (error) {
       this.logger.error(
-        'Erro ao buscar a lista de vagas no LinkedIn:',
+        'Erro ao buscar vagas no LinkedIn:',
         (error as Error).stack,
       );
       throw new Error('Não foi possível obter os dados do LinkedIn.');
@@ -214,9 +244,12 @@ export class JobsService {
    * @returns {Promise<Partial<Jobs>>} Um objeto com os detalhes extraídos da vaga.
    */
   private async getJobDetails(jobUrl: string): Promise<Partial<Jobs>> {
-    const cachedDetails = await this.cache.get<Partial<Jobs>>(jobUrl);
+    const url = new URL(jobUrl);
+    const cacheKey = `${url.origin}${url.pathname}`;
+
+    const cachedDetails = await this.cache.get<Partial<Jobs>>(cacheKey);
     if (cachedDetails) {
-      this.logger.log(`[CACHE] Retornando detalhes para: ${jobUrl}`);
+      this.logger.log(`[CACHE] Retornando detalhes para: ${cacheKey}`);
       return cachedDetails;
     }
 
@@ -261,7 +294,7 @@ export class JobsService {
       }
     });
 
-    await this.cache.set(jobUrl, details, 3600 * 1000);
+    await this.cache.set(cacheKey, details, 3600 * 1000);
 
     return details;
   }
