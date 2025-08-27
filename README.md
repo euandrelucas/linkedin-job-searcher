@@ -156,12 +156,64 @@ O projeto utiliza GitHub Actions para automação de CI/CD. O workflow está con
 * **Linting** do backend e frontend
 * **Testes** do backend
 * **Build** de ambas as aplicações
+* **Testes Docker** que verificam se os containers Docker funcionam corretamente:
+  * Construção das imagens Docker
+  * Inicialização dos containers
+  * Verificação de acessibilidade dos serviços backend e frontend
+  * Encerramento dos containers
 
 O pipeline é executado automaticamente em:
 * Push para as branches `main` ou `master`
 * Pull requests para as branches `main` ou `master`
 
 Para configurar o deploy, descomente e configure a seção de deploy no arquivo de workflow.
+
+## 🐳 Docker
+
+O projeto está configurado para ser executado em containers Docker, facilitando a implantação e garantindo consistência entre ambientes.
+
+### Arquivos Docker
+
+* `apps/backend/Dockerfile` - Configuração para construir a imagem do backend NestJS
+* `apps/frontend/Dockerfile` - Configuração para construir a imagem do frontend Next.js
+* `docker-compose.yml` - Orquestração dos serviços backend e frontend
+* `.dockerignore` - Exclui arquivos e diretórios desnecessários do contexto de build (como node_modules)
+
+### Como executar com Docker
+
+1. Construir e iniciar os containers:
+
+```bash
+docker-compose up -d --build
+```
+
+2. Acessar os serviços:
+
+* Backend: `http://localhost:3000`
+* Frontend: `http://localhost:3001`
+
+3. Parar os containers:
+
+```bash
+docker-compose down
+```
+
+### Variáveis de ambiente
+
+O arquivo `docker-compose.yml` já configura as variáveis de ambiente necessárias:
+
+* Backend:
+  * `NODE_ENV=production` - Define o ambiente de execução
+
+* Frontend:
+  * `NODE_ENV=production` - Define o ambiente de execução
+  * `NEXT_PUBLIC_API_URL=http://backend:3000` - URL da API do backend
+
+Para adicionar mais variáveis de ambiente, edite o arquivo `docker-compose.yml` ou crie arquivos `.env` nas pastas dos respectivos serviços.
+
+### Notas importantes
+
+* O arquivo `.dockerignore` é essencial para excluir o diretório `node_modules` do contexto de build do Docker, evitando problemas com permissões de arquivos e modos de arquivo desconhecidos durante o processo de build.
 
 ## ⚡ Dicas e boas práticas
 
