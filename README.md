@@ -144,6 +144,25 @@ Retorna JSON com as vagas mais recentes.
 * Estilização com **Tailwind CSS**
 * Componentes organizados em `src/components/`
 
+## 🔄 CI/CD
+
+O projeto utiliza GitHub Actions para automação de CI/CD. O workflow está configurado em `.github/workflows/ci-cd.yml` e inclui:
+
+* **Checkout do código**
+* **Setup do Node.js v20**
+* **Instalação do pnpm v10.15.0**
+* **Cache de dependências** para builds mais rápidas
+* **Instalação de dependências**
+* **Linting** do backend e frontend
+* **Testes** do backend
+* **Build** de ambas as aplicações
+
+O pipeline é executado automaticamente em:
+* Push para as branches `main` ou `master`
+* Pull requests para as branches `main` ou `master`
+
+Para configurar o deploy, descomente e configure a seção de deploy no arquivo de workflow.
+
 ## ⚡ Dicas e boas práticas
 
 * Mantenha o monorepo organizado: cada app dentro de `apps/` e libs compartilhadas em `packages/`.

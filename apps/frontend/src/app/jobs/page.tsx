@@ -24,13 +24,13 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Header } from "@/components/header"
 import { jobsApi, type Job, type SearchJobsParams } from "@/lib/jobs-api"
+import Image from "next/image"
 
 export default function JobsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [location, setLocation] = useState("")
   const [contractType, setContractType] = useState("all")
   const [experience, setExperience] = useState("all")
-  const [salaryRange, setSalaryRange] = useState("all")
   const [savedJobs, setSavedJobs] = useState<string[]>([])
   const [expandedDescriptions, setExpandedDescriptions] = useState<string[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
@@ -202,7 +202,6 @@ export default function JobsPage() {
                     onClick={() => {
                       setContractType("all")
                       setExperience("all")
-                      setSalaryRange("all")
                     }}
                   >
                     Limpar Filtros
@@ -260,7 +259,7 @@ export default function JobsPage() {
                   <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer border shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <img
+                        <Image
                           src={job.companyLogoUrl || "/placeholder.svg?height=48&width=48"}
                           alt={`${job.company} logo`}
                           className="w-12 h-12 rounded object-cover flex-shrink-0"
