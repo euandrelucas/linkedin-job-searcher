@@ -12,7 +12,7 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
   app.enableCors();
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap().catch((err) => {
   Logger.error('Error during bootstrap:', err);
