@@ -1,38 +1,41 @@
+# Stage 1 - Build
 FROM node:20-alpine AS base
 
-# Install pnpm
+# Instalar pnpm
 RUN npm install -g pnpm@10.15.0
 
-# Set working directory
+# Definir diretório de trabalho
 WORKDIR /app
 
-# Copy package.json files
+# Copiar manifests
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/frontend/package.json ./apps/frontend/
 
-# Install dependencies
+# Instalar dependências (monorepo completo)
 RUN pnpm install --frozen-lockfile
 
-# Copy the rest of the application (excluding node_modules due to .dockerignore)
+# Copiar código
 COPY . .
 
-# Build the application
+# Build do frontend
 RUN pnpm --filter frontend build
 
-# Production stage
+# Stage 2 - Production
 FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy built application from base stage
+# Copiar apenas o que o frontend precisa
 COPY --from=base /app/apps/frontend/.next ./.next
 COPY --from=base /app/apps/frontend/public ./public
-COPY --from=base /app/apps/frontend/package.json ./
-COPY --from=base /app/apps/frontend/next.config.ts ./
-COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/apps/frontend/package.json ./package.json
+COPY --from=base /app/apps/frontend/next.config.ts ./next.config.ts
 
-# Expose the port the app runs on
+# Instalar apenas dependências de produção do frontend
+RUN npm install -g pnpm@10.15.0 && pnpm install --filter frontend --prod
+
+# Expor porta
 EXPOSE 3001
 
-# Command to run the application
+# Rodar usando o script do package.json
 CMD ["pnpm", "start"]

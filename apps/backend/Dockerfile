@@ -1,36 +1,39 @@
+# Stage 1 - Build
 FROM node:20-alpine AS base
 
-# Install pnpm
+# Instalar pnpm
 RUN npm install -g pnpm@10.15.0
 
-# Set working directory
+# Definir diretório de trabalho
 WORKDIR /app
 
-# Copy package.json files
+# Copiar arquivos principais
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/backend/package.json ./apps/backend/
 
-# Install dependencies
+# Instalar dependências (monorepo inteiro)
 RUN pnpm install --frozen-lockfile
 
-# Copy the rest of the application (excluding node_modules due to .dockerignore)
+# Copiar código
 COPY . .
 
-# Build the application
+# Build do backend
 RUN pnpm --filter backend build
 
-# Production stage
+# Stage 2 - Production
 FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy built application from base stage
+# Copiar build e package.json do backend
 COPY --from=base /app/apps/backend/dist ./dist
-COPY --from=base /app/apps/backend/package.json ./
-COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/apps/backend/package.json ./package.json
 
-# Expose the port the app runs on
+# Instalar apenas dependências de produção do backend
+RUN npm install -g pnpm@10.15.0 && pnpm install --filter backend --prod
+
+# Expor porta
 EXPOSE 3000
 
-# Command to run the application
+# Rodar NestJS
 CMD ["node", "dist/main"]

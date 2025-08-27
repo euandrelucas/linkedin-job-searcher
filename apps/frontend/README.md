@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LinkedIn Job Searcher - Frontend
 
-## Getting Started
+Frontend em **Next.js** para o projeto LinkedIn Job Searcher, responsável pela interface web para pesquisa de vagas de emprego no LinkedIn.
 
-First, run the development server:
+## 📂 Estrutura do projeto
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+frontend/
+│
+├─ src/
+│   ├─ app/                # Estrutura de rotas (App Router)
+│   │   ├─ jobs/           # Página de listagem de vagas
+│   │   │   └─ page.tsx    # Componente da página de vagas
+│   │   ├─ layout.tsx      # Layout principal da aplicação
+│   │   └─ page.tsx        # Página inicial (landing page)
+│   ├─ components/         # Componentes reutilizáveis
+│   │   ├─ ui/             # Componentes de UI
+│   │   │   ├─ button.tsx  # Componente de botão
+│   │   │   ├─ card.tsx    # Componente de card
+│   │   │   ├─ input.tsx   # Componente de input
+│   │   │   ├─ select.tsx  # Componente de select
+│   │   │   └─ toast.tsx   # Componente de notificação
+│   │   ├─ header.tsx      # Componente de cabeçalho
+│   │   └─ theme-provider.tsx # Provedor de tema
+│   ├─ hooks/              # Hooks personalizados
+│   ├─ lib/                # Utilitários e configurações
+│   └─ styles/             # Estilos globais
+├─ public/                 # Arquivos estáticos
+└─ package.json            # Dependências e scripts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ⚡ Tecnologias utilizadas
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+* **Next.js** - Framework React para aplicações web
+* **React** - Biblioteca para construção de interfaces
+* **Tailwind CSS** - Framework CSS utilitário
+* **Radix UI** - Componentes acessíveis e sem estilo
+* **Lucide React** - Ícones para React
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 💻 Configuração inicial
 
-## Learn More
+1. Instalar dependências:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Configurar variáveis de ambiente:
+   - Crie um arquivo `.env.local` na raiz do projeto
+   - Defina a URL da API: `NEXT_PUBLIC_API_URL=http://localhost:4002`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🏃‍♂️ Rodando em desenvolvimento
 
-## Deploy on Vercel
+```bash
+pnpm dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+A aplicação estará disponível em `http://localhost:3001`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🏗 Build para produção
+
+```bash
+pnpm build
+```
+
+O código compilado será gerado na pasta `.next/`.
+
+## 🚀 Rodando em produção
+
+```bash
+pnpm start
+```
+
+## 📝 Páginas principais
+
+### Página inicial (/)
+
+Landing page que apresenta o projeto e suas funcionalidades principais.
+
+### Página de pesquisa de vagas (/jobs)
+
+Página que permite pesquisar vagas de emprego no LinkedIn com os seguintes recursos:
+
+* Formulário de pesquisa com campos para:
+  * Palavras-chave (ex: "Node.js")
+  * Localização (ex: "Natal, RN")
+  * Filtro de tempo (última hora, último dia, etc.)
+* Listagem de vagas em formato de cards
+* Informações detalhadas sobre cada vaga:
+  * Título
+  * Empresa
+  * Localização
+  * Data de publicação
+  * Link para a vaga no LinkedIn
+
+## 🎨 Componentes UI
+
+O projeto utiliza uma biblioteca de componentes personalizada, localizada em `src/components/ui/`:
+
+* **Button** - Botões estilizados com variantes
+* **Card** - Containers para conteúdo
+* **Input** - Campos de entrada de texto
+* **Select** - Menus de seleção dropdown
+* **Toast** - Notificações temporárias
+* **Badge** - Etiquetas para destacar informações
+
+## 🐳 Docker
+
+O frontend pode ser executado em um container Docker. Consulte o `Dockerfile` na raiz do projeto e o `docker-compose.yml` no diretório principal do projeto para mais detalhes.
+
+### Construir e executar com Docker
+
+```bash
+# Na raiz do projeto principal
+docker-compose up -d frontend
+```
+
+## 🔄 CI/CD
+
+O frontend é testado e construído automaticamente através do pipeline de CI/CD configurado com GitHub Actions. Consulte o arquivo `.github/workflows/ci-cd.yml` no diretório principal do projeto para mais detalhes.
